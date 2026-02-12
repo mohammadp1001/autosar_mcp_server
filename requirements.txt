@@ -1,0 +1,4 @@
+mcp
+lxml
+tomli; python_version < "3.11"
+./autosar_cogu_analysis
