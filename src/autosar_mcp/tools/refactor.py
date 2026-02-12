@@ -1,12 +1,11 @@
 import logging
 import autosar.xml.element as ar_element
-import autosar.xml.enumeration as ar_enum
-from mcp.server.fastmcp import FastMCP, Context
-from workspace_manager import WorkspaceManager
+from mcp.server.fastmcp import FastMCP
+from ..core.workspace_manager import WorkspaceManager
 
-logger = logging.getLogger("tools")
+logger = logging.getLogger("autosar_mcp.tools.refactor")
 
-def register_tools(mcp: FastMCP, manager: WorkspaceManager):
+def register(mcp: FastMCP, manager: WorkspaceManager):
     
     @mcp.tool()
     async def create_package(name: str, parent_path: str = "/") -> str:
@@ -67,8 +66,6 @@ def register_tools(mcp: FastMCP, manager: WorkspaceManager):
                 return f"Error: '{interface_path}' is not a SenderReceiverInterface."
             
             # create_data_element(name, type_ref)
-            # We need to verify type_ref is a valid reference string or object? 
-            # library allows string.
             interface.create_data_element(name, type_ref)
             return f"Created data element '{name}' in '{interface_path}'."
         except Exception as e:
@@ -159,8 +156,6 @@ def register_tools(mcp: FastMCP, manager: WorkspaceManager):
             interface = manager.get_element(interface_path)
             if interface is None:
                  return f"Error: Interface path '{interface_path}' not found."
-            # We don't strictly check type here because it could be SenderReceiver or ClientServer, 
-            # and the method itself might check or duck-type it.
 
             if port_type == 'P':
                 component.create_p_port(port_name, interface)
@@ -186,38 +181,9 @@ def register_tools(mcp: FastMCP, manager: WorkspaceManager):
                  return f"Error: '{package_path}' is not a package."
             
             data_type = ar_element.ImplementationDataType(name, category=category)
-            # TODO: handle props/sw_data_def_props for base type ref if needed
-            # For simplicity, we just create the type container for now.
-            # Setting the base type usually involves SwDataDefProps.
+            # TODO: handle base_type_ref
             
             package.append(data_type)
             return f"Created ImplementationDataType '{name}' in '{package_path}'."
         except Exception as e:
             return f"Error: {str(e)}"
-
-    @mcp.tool()
-    async def run_python_script(script_content: str) -> str:
-        """
-        Executes a Python script to manipulate the workspace directly.
-        
-        The script has access to:
-        - `workspace`: The autosar.xml.Workspace object.
-        - `ar_element`: The autosar.xml.element module.
-        - `manager`: The WorkspaceManager instance.
-        """
-        # Safety: This is high risk. In a real scenario, this should be sandboxed or strictly approved.
-        # Since this is a local tool for an agent, we assume the agent is trusted but explicit approval is good.
-        # The prompt says "Requires user approval per execution" in design, but MCP protocol 
-        # handles approval at client side usually. We just execute.
-        
-        try:
-            local_scope = {
-                "workspace": manager.workspace,
-                "ar_element": ar_element,
-                "manager": manager,
-                "autosar": autosar
-            }
-            exec(script_content, {}, local_scope)
-            return "Script executed successfully."
-        except Exception as e:
-            return f"Error executing script: {str(e)}"

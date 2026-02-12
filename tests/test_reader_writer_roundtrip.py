@@ -2,15 +2,18 @@ import logging
 import os
 import sys
 
-# Add project root to path to access src
+# Add project root to path
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(root_dir)
 
-# Add local autosar library to path
+# Add local autosar library schema path for lxml/autosar lib
 sys.path.append(os.path.join(root_dir, "autosar_cogu_analysis", "src"))
+# Add src to path to import autosar_mcp
+sys.path.append(os.path.join(root_dir, "src"))
 
 import autosar.xml.element as ar_element
-from src.workspace_manager import WorkspaceManager
+# Import from new package structure
+from autosar_mcp.core.workspace_manager import WorkspaceManager
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +25,7 @@ def verify():
     manager = WorkspaceManager()
     
     # 2. Load ARXML
-    test_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "test.arxml"))
+    test_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "fixtures", "demo_project", "test.arxml"))
     
     if not os.path.exists(test_file):
         print(f"ERROR: Test file not found at {test_file}")
