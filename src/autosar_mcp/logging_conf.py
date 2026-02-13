@@ -4,7 +4,7 @@ import logging
 import sys
 from typing import Optional
 
-from .config import Settings
+from autosar_mcp.config import Settings
 
 
 class _ColorFormatter(logging.Formatter):

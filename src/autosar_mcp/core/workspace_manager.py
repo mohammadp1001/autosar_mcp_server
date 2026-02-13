@@ -2,28 +2,58 @@ import autosar.xml
 import autosar.xml.element as ar_element
 import autosar.xml.reader as ar_reader
 import os
-import logging
 
-logger = logging.getLogger("workspace_manager")
+from autosar_mcp.config import load_settings
+from autosar_mcp.logging_conf import setup_logging, get_logger
+
+settings = load_settings()
+setup_logging(settings)
+logger = get_logger(__name__)
+
 
 class WorkspaceManager:
     def __init__(self):
+        """Initializes a workspace manager instance.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         self.workspace = autosar.xml.Workspace()
         self.files_loaded = []
 
     def clear(self):
-        """Resets the workspace."""
+        """Resets the workspace and loaded file tracking.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         self.workspace = autosar.xml.Workspace()
         self.files_loaded = []
 
     def load_files(self, files: list[str]):
-        """Loads ARXML files into the workspace."""
+        """Loads ARXML files into the workspace.
+
+        Args:
+            files: Absolute or relative paths to ARXML files to load.
+
+        Returns:
+            None.
+
+        Raises:
+            FileNotFoundError: If any provided file path does not exist.
+        """
         reader = ar_reader.Reader()
         for file_path in files:
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"File not found: {file_path}")
             
-            logger.info(f"Reading {file_path}")
+            logger.info("Reading %s", file_path)
             # Reader.read_file returns a Document object
             document = reader.read_file(file_path)
             
@@ -37,6 +67,13 @@ class WorkspaceManager:
         """
         Recursively merges source_package into parent_collection.
         parent_collection can be Workspace, Document, or Package.
+
+        Args:
+            parent_collection: Target collection to merge into.
+            source_package: Source package to merge from.
+
+        Returns:
+            None.
         """
         # check if package already exists in parent
         existing_package = parent_collection.find(source_package.name)
@@ -60,12 +97,27 @@ class WorkspaceManager:
                 else:
                     # Logic for duplicate elements:
                     # For now, warn and skip.
-                    logger.warning(f"Duplicate element '{element.name}' in package '{existing_package.name}'. Skipping.")
+                    logger.warning(
+                        "Duplicate element '%s' in package '%s'. Skipping.",
+                        element.name,
+                        existing_package.name,
+                    )
         else:
-             logger.error(f"Conflict: '{source_package.name}' exists but is not a package.")
+             logger.error(
+                 "Conflict: '%s' exists but is not a package.",
+                 source_package.name,
+             )
 
     def save(self, target_directory: str, version: int):
-        """Saves documents to the target directory."""
+        """Saves workspace packages as ARXML documents in a directory.
+
+        Args:
+            target_directory: Destination directory for generated ARXML files.
+            version: AUTOSAR schema version passed to the writer.
+
+        Returns:
+            None.
+        """
         self.workspace.set_document_root(target_directory)
         
         # Auto-create documents for all root packages
@@ -85,7 +137,15 @@ class WorkspaceManager:
         self.workspace.write_documents(schema_version=version)
 
     def list_content(self, path: str) -> str:
-        """Lists content of a package."""
+        """Lists child packages and elements at a workspace path.
+
+        Args:
+            path: Absolute AUTOSAR path to a workspace or package.
+
+        Returns:
+            A formatted text listing of discovered packages/elements, or a
+            message describing why listing is not possible.
+        """
         element = self.get_element(path)
         
         if isinstance(element, (autosar.xml.Workspace, ar_element.Package)):
@@ -111,7 +171,14 @@ class WorkspaceManager:
             return f"Element at {path} is not a package/workspace. It is {type(element).__name__}."
 
     def get_element_str(self, path: str) -> str:
-        """Gets string representation of an element."""
+        """Gets a string representation of an element by path.
+
+        Args:
+            path: Absolute AUTOSAR path to the target element.
+
+        Returns:
+            Stringified dictionary of element attributes, or a not-found message.
+        """
         element = self.get_element(path)
         if element is None:
              return f"Element not found: {path}"
@@ -122,7 +189,15 @@ class WorkspaceManager:
         return str(vars(element))
 
     def get_element(self, path: str):
-        """Helper to find element by path."""
+        """Finds an element in the workspace by absolute path.
+
+        Args:
+            path: Absolute AUTOSAR path. Use "/" for the workspace root.
+
+        Returns:
+            The matching workspace object, package, or element; otherwise None
+            if the path is not found.
+        """
         if path == "/":
             return self.workspace
         

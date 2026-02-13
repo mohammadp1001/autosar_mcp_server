@@ -1,5 +1,5 @@
 [project]
-name = "autosar-mcp"
+name = "autosar_mcp"
 version = "0.1.0"
 description = "AUTOSAR MCP Server"
 readme = "README.md"

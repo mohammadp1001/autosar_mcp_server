@@ -6,7 +6,6 @@ from ..core.workspace_manager import WorkspaceManager
 logger = logging.getLogger("autosar_mcp.tools.refactor")
 
 def register(mcp: FastMCP, manager: WorkspaceManager):
-    
     @mcp.tool()
     async def create_package(name: str, parent_path: str = "/") -> str:
         """
