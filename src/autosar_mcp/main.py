@@ -10,7 +10,6 @@ logger = get_logger(__name__)
 
 def main():
     setup_logging(settings)
-    # FastMCP.run() automatically handles stdio transport
     mcp.run()
 
 if __name__ == "__main__":

@@ -59,10 +59,9 @@ def setup_logging(settings: Settings, *, force: bool = False) -> None:
     """
     root = logging.getLogger()
     if root.handlers and not force:
-        # Already configured
         return
 
-    # Reset handlers if force=True
+    
     if force:
         for h in list(root.handlers):
             root.removeHandler(h)
@@ -72,7 +71,7 @@ def setup_logging(settings: Settings, *, force: bool = False) -> None:
 
     handler = logging.StreamHandler(stream=sys.stderr)
 
-    # Keep logs readable: time, level, logger name, message
+
     fmt = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 
     use_color = sys.stderr.isatty() and settings.debug
@@ -81,11 +80,9 @@ def setup_logging(settings: Settings, *, force: bool = False) -> None:
 
     root.addHandler(handler)
 
-    # Quiet down noisy loggers (tweak as needed)
     for noisy in ("asyncio", "urllib3"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
-    # Optional: when debug is on, show where logs came from
     if settings.debug:
         _enable_debug_details()
 
