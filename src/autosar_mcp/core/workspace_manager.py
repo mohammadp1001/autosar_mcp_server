@@ -2,13 +2,9 @@ import autosar.xml
 import autosar.xml.element as ar_element
 import autosar.xml.reader as ar_reader
 import os
+import logging
 
-from autosar_mcp.config import load_settings
-from autosar_mcp.logging_conf import setup_logging, get_logger
-
-settings = load_settings()
-setup_logging(settings)
-logger = get_logger(__name__)
+logger = logging.getLogger("autosar_mcp.tools.refactor")
 
 
 class WorkspaceManager:

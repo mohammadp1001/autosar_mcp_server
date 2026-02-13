@@ -1,7 +1,7 @@
 import logging
 import autosar.xml.element as ar_element
 from mcp.server.fastmcp import FastMCP
-from ..core.workspace_manager import WorkspaceManager
+from autosar_mcp.core.workspace_manager import WorkspaceManager
 
 logger = logging.getLogger("autosar_mcp.tools.refactor")
 
