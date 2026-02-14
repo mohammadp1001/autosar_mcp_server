@@ -11,6 +11,8 @@ This server wraps the `autosar` Python library and exposes
 domain-specific tools through MCP.
 
 The current version only supports AUTOSAR classic.
+
+<!-- autosar_mcp: io.github.mohammadp1001/autosar_mcp_server -->
 ------------------------------------------------------------------------
 
 ## ✨ Features
@@ -50,64 +52,7 @@ The current version only supports AUTOSAR classic.
     │
     ├── tools.py
     ├── server.py
-    └── prompts/ (optional)
-
-------------------------------------------------------------------------
-
-## 🚀 Installation
-
-``` bash
-pip install -r requirements.txt
-```
-
-------------------------------------------------------------------------
-
-## ▶ Running the Server
-
-``` bash
-python -m autosar_mcp.server
-```
-
-The server communicates over **stdio**, required for GitHub Copilot MCP
-integration.
-
-------------------------------------------------------------------------
-
-## Using with GitHub Copilot (VS Code)
-
-Create `.vscode/mcp.json`:
-
-``` json
-{
-  "servers": {
-    "autosar-mcp": {
-      "command": "python",
-      "args": ["-m", "autosar_mcp.server"]
-    }
-  }
-}
-```
-
-Then: 1. Open VS Code 2. Open Copilot Chat 3. Switch to Agent Mode 4.
-Start the autosar-mcp server 5. Copilot can now call AUTOSAR tools
-directly
-
-------------------------------------------------------------------------
-
-## 🧠 Typical LLM Workflow
-
-1.  create_workspace
-2.  create_package_map
-3.  Create base types
-4.  Create implementation data types
-5.  Create port interfaces
-6.  Create components
-7.  Create ports
-8.  Create internal behavior
-9.  set_document_root
-10. create_document
-11. create_document_mapping
-12. write_documents
+    └── prompts/ 
 
 ------------------------------------------------------------------------
 
