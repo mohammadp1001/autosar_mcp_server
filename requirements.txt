@@ -1,3 +1,4 @@
 mcp
 lxml
 tomli; python_version < "3.11"
+mcp-publisher

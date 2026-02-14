@@ -10,8 +10,11 @@ from typing import Any, Optional
 import autosar.xml
 import autosar.xml.reader as ar_reader
 import autosar.xml.writer as ar_writer
+import autosar.xml.element as ar_element
 
 from autosar_mcp.core.registry import ObjectRegistry
+
+# pylint: disable=line-too-long
 
 
 class WorkspaceManager:
@@ -218,3 +221,549 @@ class WorkspaceManager:
         """
         ws = self.get_workspace(workspace_id)
         return ws.find(path)
+
+    def create_swc_internal_behavior(self, workspace_id: str, component_path: str) -> None:
+        """Creates an internal behavior object for a software component.
+
+        Args:
+            workspace_id: Workspace ID containing the component.
+            component_path: AUTOSAR path to the component type.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        component = ws.find(component_path)
+        component.create_internal_behavior()
+
+    def create_runnable(self, workspace_id: str, component_path: str, runnable_name: str, symbol: str) -> None:
+        """Creates a runnable in a component's internal behavior.
+
+        Args:
+            workspace_id: Workspace ID containing the component.
+            component_path: AUTOSAR path to the component type.
+            runnable_name: Runnable short name.
+            symbol: Runnable symbol name.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        component = ws.find(component_path)
+        ib = component.internal_behavior
+        ib.create_runnable(runnable_name, symbol=symbol)
+
+
+    def create_timing_event(self, workspace_id: str, component_path: str, runnable_name: str, period: float) -> None:
+        """Creates a timing event that triggers a runnable.
+
+        Args:
+            workspace_id: Workspace ID containing the component.
+            component_path: AUTOSAR path to the component type.
+            runnable_name: Runnable name to trigger.
+            period: Timing period in seconds.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        component = ws.find(component_path)
+        ib = component.internal_behavior
+        ib.create_timing_event(runnable_name, period)
+
+
+    def create_data_received_event(self, workspace_id: str, component_path: str, runnable_name: str, port_path: str, data_element_name: str) -> None:
+        """Creates a data-received event that triggers a runnable.
+
+        Args:
+            workspace_id: Workspace ID containing the component.
+            component_path: AUTOSAR path to the component type.
+            runnable_name: Runnable name to trigger.
+            port_path: AUTOSAR path to the port.
+            data_element_name: Data element name on the interface.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        component = ws.find(component_path)
+        ib = component.internal_behavior
+        ib.create_data_received_event(runnable_name, port_path, data_element_name)
+
+
+    def create_operation_invoked_event(self, workspace_id: str, component_path: str, runnable_name: str, operation_name: str) -> None:
+        """Creates an operation-invoked event that triggers a runnable.
+
+        Args:
+            workspace_id: Workspace ID containing the component.
+            component_path: AUTOSAR path to the component type.
+            runnable_name: Runnable name to trigger.
+            operation_name: Operation name on the client-server interface.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        component = ws.find(component_path)
+        ib = component.internal_behavior
+        ib.create_operation_invoked_event(runnable_name, operation_name)
+
+
+    def create_mode_switch_event(self, workspace_id: str, component_path: str, runnable_name: str, mode_group_ref: str) -> None:
+        """Creates a mode-switch event that triggers a runnable.
+
+        Args:
+            workspace_id: Workspace ID containing the component.
+            component_path: AUTOSAR path to the component type.
+            runnable_name: Runnable name to trigger.
+            mode_group_ref: Reference to the mode declaration group.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        component = ws.find(component_path)
+        ib = component.internal_behavior
+        ib.create_mode_switch_event(runnable_name, mode_group_ref)
+
+
+    def set_nonqueued_receiver_com_spec(self, workspace_id: str, component_path: str, port_name: str, data_element_name: str, alive_timeout: int | None) -> None:
+        """Sets non-queued receiver communication spec on a port.
+
+        Args:
+            workspace_id: Workspace ID containing the component.
+            component_path: AUTOSAR path to the component type.
+            port_name: Port short name to update.
+            data_element_name: Data element short name to configure.
+            alive_timeout: Optional alive timeout value.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        component = ws.find(component_path)
+        port = component.find(port_name)
+        port.set_nonqueued_receiver_com_spec(data_element_name, alive_timeout)
+
+
+    def set_queued_sender_com_spec(self, workspace_id: str, component_path: str, port_name: str, data_element_name: str, queue_length: int) -> None:
+        """Sets queued sender communication spec on a port.
+
+        Args:
+            workspace_id: Workspace ID containing the component.
+            component_path: AUTOSAR path to the component type.
+            port_name: Port short name to update.
+            data_element_name: Data element short name to configure.
+            queue_length: Queue length for queued sending.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        component = ws.find(component_path)
+        port = component.find(port_name)
+        port.set_queued_sender_com_spec(data_element_name, queue_length)
+
+
+    def create_mode_declaration_group(self, workspace_id: str, package_path: str, name: str, modes: list[str]) -> None:
+        """Creates a ModeDeclarationGroup with given modes in a package.
+
+        Args:
+            workspace_id: Workspace ID containing the package.
+            package_path: AUTOSAR path to the package.
+            name: ModeDeclarationGroup short name.
+            modes: List of mode names to create.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        package = ws.find(package_path)
+        mdg = ar_element.ModeDeclarationGroup(name)
+        for mode in modes:
+            mdg.create_mode_declaration(mode)
+        package.append(mdg)
+
+
+    def create_mode_switch_interface(self, workspace_id: str, package_path: str, name: str, mode_group_ref: str) -> None:
+        """Creates a ModeSwitchInterface in a package.
+
+        Args:
+            workspace_id: Workspace ID containing the package.
+            package_path: AUTOSAR path to the package.
+            name: ModeSwitchInterface short name.
+            mode_group_ref: Reference to a mode declaration group.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        package = ws.find(package_path)
+        interface = ar_element.ModeSwitchInterface(name, mode_group_ref=mode_group_ref)
+        package.append(interface)
+
+
+    def create_assembly_connector(self, workspace_id: str, composition_path: str, provider_component: str, provider_port: str, requester_component: str, requester_port: str) -> None:
+        """Creates an assembly connector within a composition.
+
+        Args:
+            workspace_id: Workspace ID containing the composition.
+            composition_path: AUTOSAR path to the composition component.
+            provider_component: Provider inner component name.
+            provider_port: Provider port name.
+            requester_component: Requester inner component name.
+            requester_port: Requester port name.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        composition = ws.find(composition_path)
+        composition.create_assembly_connector(
+            provider_component, provider_port,
+            requester_component, requester_port
+        )
+
+
+    def create_delegation_connector(self, workspace_id: str, composition_path: str, inner_component: str, inner_port: str, outer_port: str) -> None:
+        """Creates a delegation connector within a composition.
+
+        Args:
+            workspace_id: Workspace ID containing the composition.
+            composition_path: AUTOSAR path to the composition component.
+            inner_component: Inner component short name.
+            inner_port: Inner port short name.
+            outer_port: Outer port short name.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        composition = ws.find(composition_path)
+        composition.create_delegation_connector(
+            inner_component, inner_port, outer_port
+        )
+
+
+    def set_port_api_option(self, workspace_id: str, component_path: str, port_name: str, enable_take_address: bool, indirect_api: bool) -> None:
+        """Sets PortAPIOption settings on a port.
+
+        Args:
+            workspace_id: Workspace ID containing the component.
+            component_path: AUTOSAR path to the component type.
+            port_name: Port short name to update.
+            enable_take_address: Whether take-address is enabled.
+            indirect_api: Whether indirect API is enabled.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        component = ws.find(component_path)
+        port = component.find(port_name)
+        port.set_port_api_option(enable_take_address=enable_take_address, indirect_api=indirect_api)
+
+    def create_sender_receiver_interface(self, workspace_id: str, package_path: str, name: str) -> None:
+        """Creates a SenderReceiverInterface in a package.
+
+        Args:
+            workspace_id: Workspace ID containing the package.
+            package_path: AUTOSAR path to the package.
+            name: Interface short name.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        package = ws.find(package_path)
+        if not isinstance(package, ar_element.Package):
+            raise TypeError(f"'{package_path}' is not a Package.")
+        interface = ar_element.SenderReceiverInterface(name)
+        package.append(interface)
+
+
+    def create_data_element(self, workspace_id: str, interface_path: str, name: str, type_ref: str) -> None:
+        """Creates a data element under a SenderReceiverInterface.
+
+        Args:
+            workspace_id: Workspace ID containing the interface.
+            interface_path: AUTOSAR path to the sender-receiver interface.
+            name: Data element short name.
+            type_ref: Type reference (AUTOSAR ref string).
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        interface = ws.find(interface_path)
+        if not isinstance(interface, ar_element.SenderReceiverInterface):
+            raise TypeError(f"'{interface_path}' is not a SenderReceiverInterface.")
+        interface.create_data_element(name, type_ref)
+
+
+    def create_client_server_interface(self, workspace_id: str, package_path: str, name: str) -> None:
+        """Creates a ClientServerInterface in a package.
+
+        Args:
+            workspace_id: Workspace ID containing the package.
+            package_path: AUTOSAR path to the package.
+            name: Interface short name.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        package = ws.find(package_path)
+        if not isinstance(package, ar_element.Package):
+            raise TypeError(f"'{package_path}' is not a Package.")
+        interface = ar_element.ClientServerInterface(name)
+        package.append(interface)
+
+
+    def create_operation(self, workspace_id: str, interface_path: str, name: str) -> None:
+        """Creates an operation under a ClientServerInterface.
+
+        Args:
+            workspace_id: Workspace ID containing the interface.
+            interface_path: AUTOSAR path to the client-server interface.
+            name: Operation short name.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        interface = ws.find(interface_path)
+        if not isinstance(interface, ar_element.ClientServerInterface):
+            raise TypeError(f"'{interface_path}' is not a ClientServerInterface.")
+        interface.create_operation(name)
+
+
+    def create_component_type(self, workspace_id: str, package_path: str, name: str, component_type: str) -> None:
+        """Creates a software component type in a package.
+
+        Args:
+            workspace_id: Workspace ID containing the package.
+            package_path: AUTOSAR path to the package.
+            name: Component short name.
+            component_type: Component kind (e.g. "Application", "Composition").
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        package = ws.find(package_path)
+        if not isinstance(package, ar_element.Package):
+            raise TypeError(f"'{package_path}' is not a Package.")
+
+        if component_type == "Application":
+            component = ar_element.ApplicationSoftwareComponentType(name)
+        elif component_type == "Composition":
+            component = ar_element.CompositionSwComponentType(name)
+        else:
+            # Fallback to Application since other types don't exist
+            component = ar_element.ApplicationSoftwareComponentType(name)
+
+        package.append(component)
+
+
+    def create_port(self, workspace_id: str, component_path: str, port_name: str, interface_path: str, port_type: str) -> None:
+        """Creates a port on a software component type.
+
+        Args:
+            workspace_id: Workspace ID containing the component.
+            component_path: AUTOSAR path to the component type.
+            port_name: Port short name to create.
+            interface_path: AUTOSAR path to the port interface.
+            port_type: Port kind ("P", "R", or "PR").
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        component = ws.find(component_path)
+        if not isinstance(component, ar_element.SwComponentType):
+            raise TypeError(f"'{component_path}' is not a SwComponentType.")
+
+        interface = ws.find(interface_path)
+        if interface is None:
+            raise ValueError(f"Interface '{interface_path}' not found.")
+
+        if port_type == "P":
+            component.create_p_port(port_name, interface)
+        elif port_type == "R":
+            component.create_r_port(port_name, interface)
+        elif port_type == "PR":
+            component.create_pr_port(port_name, interface)
+        else:
+            raise ValueError(f"Invalid port_type '{port_type}'.")
+
+
+    def create_implementation_data_type(
+        self,
+        workspace_id: str,
+        package_path: str,
+        name: str,
+        category: str = "VALUE",
+    ) -> None:
+        """Creates an ImplementationDataType in a package.
+
+        Args:
+            workspace_id: Workspace ID containing the package.
+            package_path: AUTOSAR path to the package.
+            name: Data type short name.
+            category: Implementation data type category.
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        package = ws.find(package_path)
+        if not isinstance(package, ar_element.Package):
+            raise TypeError(f"'{package_path}' is not a Package.")
+
+        data_type = ar_element.ImplementationDataType(name, category=category)
+        package.append(data_type)
+
+
+    def create_sw_base_type_in_package(
+        self,
+        workspace_id: str,
+        package_path: str,
+        name: str,
+        size: int | None = None,
+        max_size: int | None = None,
+        encoding: str | None = None,
+        alignment: int | None = None,
+        byte_order: str | None = None,
+        native_declaration: str | None = None,
+    ) -> None:
+        """Creates a SwBaseType in a package (creating packages if needed).
+
+        Args:
+            workspace_id: Workspace ID containing the package.
+            package_path: AUTOSAR path to the package.
+            name: SwBaseType short name.
+            size: Optional size in bits.
+            max_size: Optional max size in bits.
+            encoding: Optional encoding name.
+            alignment: Optional alignment in bits/bytes depending on schema usage.
+            byte_order: Optional byte order string (currently not wired).
+            native_declaration: Optional native declaration string.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        pkg = ws.make_packages(package_path.lstrip("/"))
+        elem = ar_element.SwBaseType(
+            name=name,
+            size=size,
+            max_size=max_size,
+            encoding=encoding,
+            alignment=alignment,
+            byte_order=byte_order,
+            native_declaration=native_declaration,
+        )
+        pkg.append(elem)
+
+
+    def create_unit_in_package(
+        self,
+        workspace_id: str,
+        package_path: str,
+        name: str,
+        display_name: str | None = None,
+        factor: float | None = None,
+        offset: float | None = None,
+        physical_dimension_ref: str | None = None,
+    ) -> None:
+        """Creates a Unit in a package (creating packages if needed).
+
+        Args:
+            workspace_id: Workspace ID containing the package.
+            package_path: AUTOSAR path to the package.
+            name: Unit short name.
+            display_name: Optional display name.
+            factor: Optional scaling factor.
+            offset: Optional offset.
+            physical_dimension_ref: Optional physical dimension reference.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        pkg = ws.make_packages(package_path.lstrip("/"))
+        unit = ar_element.Unit(
+            name=name,
+            display_name=display_name,
+            factor=factor,
+            offset=offset,
+            physical_dimension_ref=physical_dimension_ref,
+        )
+        pkg.append(unit)
+
+
+    def create_constant_in_package(self, workspace_id: str, package_path: str, name: str, value) -> None:
+        """Creates a ConstantSpecification in a package (creating packages if needed).
+
+        Args:
+            workspace_id: Workspace ID containing the package.
+            package_path: AUTOSAR path to the package.
+            name: Constant short name.
+            value: Value accepted by ``ConstantSpecification.make_constant``.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        pkg = ws.make_packages(package_path.lstrip("/"))
+        const = ar_element.ConstantSpecification.make_constant(name=name, value=value)
+        pkg.append(const)
+
+
+    def add_sw_base_type_by_package_key(self, workspace_id: str, package_key: str, **kwargs) -> None:
+        """Adds a SwBaseType element to a package selected by package map key.
+
+        Args:
+            workspace_id: Workspace ID containing the package map.
+            package_key: Package map key.
+            **kwargs: SwBaseType constructor keyword arguments.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        elem = ar_element.SwBaseType(**kwargs)
+        ws.add_element(package_key, elem)
+
+
+    def add_constant_by_package_key(self, workspace_id: str, package_key: str, name: str, value) -> None:
+        """Adds a ConstantSpecification to a package selected by package map key.
+
+        Args:
+            workspace_id: Workspace ID containing the package map.
+            package_key: Package map key.
+            name: Constant short name.
+            value: Value accepted by ``ConstantSpecification.make_constant``.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        const = ar_element.ConstantSpecification.make_constant(name=name, value=value)
+        ws.add_element(package_key, const)
+
+
+    def add_unit_by_package_key(self, workspace_id: str, package_key: str, **kwargs) -> None:
+        """Adds a Unit element to a package selected by package map key.
+
+        Args:
+            workspace_id: Workspace ID containing the package map.
+            package_key: Package map key.
+            **kwargs: Unit constructor keyword arguments.
+
+        Returns:
+            None.
+        """
+        ws = self.get_workspace(workspace_id)
+        unit = ar_element.Unit(**kwargs)
+        ws.add_element(package_key, unit)

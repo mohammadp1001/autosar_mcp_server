@@ -1,10 +1,10 @@
+"""The main entry point of """
 from __future__ import annotations
 
 from mcp.server.fastmcp.server import FastMCP
 
 from autosar_mcp.core.workspace_manager import WorkspaceManager
-from autosar_mcp.tools import register_tools
-
+from autosar_mcp import tools
 
 # Create MCP app
 app = FastMCP("autosar-mcp")
@@ -13,7 +13,7 @@ app = FastMCP("autosar-mcp")
 manager = WorkspaceManager()
 
 # Register tools
-register_tools(app, manager)
+tools.register_tools(app, manager)
 
 
 def get_app() -> FastMCP:

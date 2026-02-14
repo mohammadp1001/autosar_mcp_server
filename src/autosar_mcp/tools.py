@@ -96,133 +96,112 @@ def register_tools(mcp: Any, manager: WorkspaceManager) -> None:
         return models.ListRootPackagesOut(packages=pkgs).model_dump()
 
     @mcp.tool()
-    async def create_sender_receiver_interface(workspace_id: str, package_path: str, name: str) -> dict[str, Any]:
-        req = models.CreateSenderReceiverInterfaceIn(workspace_id=workspace_id, package_path=package_path, name=name)
-        try:
-            ws = _get_workspace(req.workspace_id)
-            package = _get_element(ws, req.package_path)
-            if not isinstance(package, ar_element.Package):
-                return models.ToolResult(
-                    ok=False,
-                    message=f"'{req.package_path}' is not a Package.",
-                ).model_dump()
+    async def create_swc_internal_behavior(workspace_id: str, component_path: str) -> dict:
+        manager.create_swc_internal_behavior(workspace_id, component_path)
+        return {"ok": True}
 
-            interface = ar_element.SenderReceiverInterface(req.name)
-            package.append(interface)
-            return models.ToolResult(
-                ok=True,
-                message=f"Created SenderReceiverInterface '{req.name}' in '{req.package_path}'.",
-            ).model_dump()
-        except Exception as exc:
-            logger.exception("create_sender_receiver_interface failed")
-            return models.ToolResult(ok=False, message=str(exc)).model_dump()
 
     @mcp.tool()
-    async def create_data_element(workspace_id: str, interface_path: str, name: str, type_ref: str) -> dict[str, Any]:
-        req = models.CreateDataElementIn(
-            workspace_id=workspace_id,
-            interface_path=interface_path,
-            name=name,
-            type_ref=type_ref,
-        )
-        try:
-            ws = _get_workspace(req.workspace_id)
-            interface = _get_element(ws, req.interface_path)
-            if not isinstance(interface, ar_element.SenderReceiverInterface):
-                return models.ToolResult(
-                    ok=False,
-                    message=f"'{req.interface_path}' is not a SenderReceiverInterface.",
-                ).model_dump()
+    async def create_runnable(workspace_id: str, component_path: str, runnable_name: str, symbol: str) -> dict:
+        manager.create_runnable(workspace_id, component_path, runnable_name, symbol)
+        return {"ok": True}
 
-            interface.create_data_element(req.name, req.type_ref)
-            return models.ToolResult(
-                ok=True,
-                message=f"Created data element '{req.name}' in '{req.interface_path}'.",
-            ).model_dump()
-        except Exception as exc:
-            logger.exception("create_data_element failed")
-            return models.ToolResult(ok=False, message=str(exc)).model_dump()
 
     @mcp.tool()
-    async def create_client_server_interface(workspace_id: str, package_path: str, name: str) -> dict[str, Any]:
-        req = models.CreateClientServerInterfaceIn(workspace_id=workspace_id, package_path=package_path, name=name)
-        try:
-            ws = _get_workspace(req.workspace_id)
-            package = _get_element(ws, req.package_path)
-            if not isinstance(package, ar_element.Package):
-                return models.ToolResult(ok=False, message=f"'{req.package_path}' is not a Package.").model_dump()
+    async def create_timing_event(workspace_id: str, component_path: str, runnable_name: str, period: float) -> dict:
+        manager.create_timing_event(workspace_id, component_path, runnable_name, period)
+        return {"ok": True}
 
-            interface = ar_element.ClientServerInterface(req.name)
-            package.append(interface)
-            return models.ToolResult(
-                ok=True,
-                message=f"Created ClientServerInterface '{req.name}' in '{req.package_path}'.",
-            ).model_dump()
-        except Exception as exc:
-            logger.exception("create_client_server_interface failed")
-            return models.ToolResult(ok=False, message=str(exc)).model_dump()
 
     @mcp.tool()
-    async def create_operation(workspace_id: str, interface_path: str, name: str) -> dict[str, Any]:
-        req = models.CreateOperationIn(workspace_id=workspace_id, interface_path=interface_path, name=name)
-        try:
-            ws = _get_workspace(req.workspace_id)
-            interface = _get_element(ws, req.interface_path)
-            if not isinstance(interface, ar_element.ClientServerInterface):
-                return models.ToolResult(
-                    ok=False,
-                    message=f"'{req.interface_path}' is not a ClientServerInterface.",
-                ).model_dump()
+    async def create_data_received_event(workspace_id: str, component_path: str, runnable_name: str, port_path: str, data_element_name: str) -> dict:
+        manager.create_data_received_event(workspace_id, component_path, runnable_name, port_path, data_element_name)
+        return {"ok": True}
 
-            interface.create_operation(req.name)
-            return models.ToolResult(
-                ok=True,
-                message=f"Created operation '{req.name}' in '{req.interface_path}'.",
-            ).model_dump()
-        except Exception as exc:
-            logger.exception("create_operation failed")
-            return models.ToolResult(ok=False, message=str(exc)).model_dump()
 
     @mcp.tool()
-    async def create_component_type(workspace_id: str, package_path: str, name: str, component_type: str) -> dict[str, Any]:
-        req = models.CreateComponentTypeIn(
-            workspace_id=workspace_id,
-            package_path=package_path,
-            name=name,
-            component_type=component_type,
-        )
-        try:
-            ws = _get_workspace(req.workspace_id)
-            package = _get_element(ws, req.package_path)
-            if not isinstance(package, ar_element.Package):
-                return models.ToolResult(ok=False, message=f"'{req.package_path}' is not a Package.").model_dump()
+    async def create_operation_invoked_event(workspace_id: str, component_path: str, runnable_name: str, operation_name: str) -> dict:
+        manager.create_operation_invoked_event(workspace_id, component_path, runnable_name, operation_name)
+        return {"ok": True}
 
-            t = req.component_type
-            component = None
-            if t == "Application":
-                component = ar_element.ApplicationSoftwareComponentType(req.name)
-            elif t == "SensorActuator":
-                logger.warning("Warning: Component type %s is not supported by this autosar library version.", component_type)
-                component = ar_element.ApplicationSoftwareComponentType(req.name)
-            elif t == "Service":
-                logger.warning("Warning: Component type %s is not supported by this autosar library version.", component_type)
-                component = ar_element.ApplicationSoftwareComponentType(req.name)
-            elif t == "ComplexDeviceDriver":
-                logger.warning("Warning: Component type %s is not supported by this autosar library version.", component_type)
-                component = ar_element.ApplicationSoftwareComponentType(req.name)
-            elif t == "Composition":
-                component = ar_element.CompositionSwComponentType(req.name)
-            else:
-                return models.ToolResult(ok=False, message=f"Unknown component_type '{t}'.").model_dump()
 
-            package.append(component)
-            return models.ToolResult(
-                ok=True,
-                message=f"Created {t} component '{req.name}' in '{req.package_path}'.",
-            ).model_dump()
-        except Exception as exc:
-            logger.exception("create_component_type failed")
-            return models.ToolResult(ok=False, message=str(exc)).model_dump()
+    @mcp.tool()
+    async def create_mode_switch_event(workspace_id: str, component_path: str, runnable_name: str, mode_group_ref: str) -> dict:
+        manager.create_mode_switch_event(workspace_id, component_path, runnable_name, mode_group_ref)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def set_nonqueued_receiver_com_spec(workspace_id: str, component_path: str, port_name: str, data_element_name: str, alive_timeout: int | None = None) -> dict:
+        manager.set_nonqueued_receiver_com_spec(workspace_id, component_path, port_name, data_element_name, alive_timeout)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def set_queued_sender_com_spec(workspace_id: str, component_path: str, port_name: str, data_element_name: str, queue_length: int) -> dict:
+        manager.set_queued_sender_com_spec(workspace_id, component_path, port_name, data_element_name, queue_length)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def create_mode_declaration_group(workspace_id: str, package_path: str, name: str, modes: list[str]) -> dict:
+        manager.create_mode_declaration_group(workspace_id, package_path, name, modes)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def create_mode_switch_interface(workspace_id: str, package_path: str, name: str, mode_group_ref: str) -> dict:
+        manager.create_mode_switch_interface(workspace_id, package_path, name, mode_group_ref)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def create_assembly_connector(workspace_id: str, composition_path: str, provider_component: str, provider_port: str, requester_component: str, requester_port: str) -> dict:
+        manager.create_assembly_connector(workspace_id, composition_path, provider_component, provider_port, requester_component, requester_port)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def create_delegation_connector(workspace_id: str, composition_path: str, inner_component: str, inner_port: str, outer_port: str) -> dict:
+        manager.create_delegation_connector(workspace_id, composition_path, inner_component, inner_port, outer_port)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def set_port_api_option(workspace_id: str, component_path: str, port_name: str, enable_take_address: bool, indirect_api: bool) -> dict:
+        manager.set_port_api_option(workspace_id, component_path, port_name, enable_take_address, indirect_api)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def create_sender_receiver_interface(workspace_id: str, package_path: str, name: str) -> dict:
+        manager.create_sender_receiver_interface(workspace_id, package_path, name)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def create_data_element(workspace_id: str, interface_path: str, name: str, type_ref: str) -> dict:
+        manager.create_data_element(workspace_id, interface_path, name, type_ref)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def create_client_server_interface(workspace_id: str, package_path: str, name: str) -> dict:
+        manager.create_client_server_interface(workspace_id, package_path, name)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def create_operation(workspace_id: str, interface_path: str, name: str) -> dict:
+        manager.create_operation(workspace_id, interface_path, name)
+        return {"ok": True}
+
+
+    @mcp.tool()
+    async def create_component_type(workspace_id: str, package_path: str, name: str, component_type: str) -> dict:
+        manager.create_component_type(workspace_id, package_path, name, component_type)
+        return {"ok": True}
+
 
     @mcp.tool()
     async def create_port(
@@ -231,47 +210,10 @@ def register_tools(mcp: Any, manager: WorkspaceManager) -> None:
         port_name: str,
         interface_path: str,
         port_type: str,
-    ) -> dict[str, Any]:
-        req = models.CreatePortIn(
-            workspace_id=workspace_id,
-            component_path=component_path,
-            port_name=port_name,
-            interface_path=interface_path,
-            port_type=port_type,
-        )
-        try:
-            ws = _get_workspace(req.workspace_id)
+    ) -> dict:
+        manager.create_port(workspace_id, component_path, port_name, interface_path, port_type)
+        return {"ok": True}
 
-            component = _get_element(ws, req.component_path)
-            if not isinstance(component, ar_element.SwComponentType):
-                return models.ToolResult(
-                    ok=False,
-                    message=f"'{req.component_path}' is not a SwComponentType (got {type(component)}).",
-                ).model_dump()
-
-            interface = _get_element(ws, req.interface_path)
-            if interface is None:
-                return models.ToolResult(ok=False, message=f"Interface '{req.interface_path}' not found.").model_dump()
-
-            if req.port_type == "P":
-                component.create_p_port(req.port_name, interface)
-            elif req.port_type == "R":
-                component.create_r_port(req.port_name, interface)
-            elif req.port_type == "PR":
-                component.create_pr_port(req.port_name, interface)
-            else:
-                return models.ToolResult(
-                    ok=False,
-                    message=f"Invalid port_type '{req.port_type}'. Use P, R, or PR.",
-                ).model_dump()
-
-            return models.ToolResult(
-                ok=True,
-                message=f"Created {req.port_type}-Port '{req.port_name}' in '{req.component_path}'.",
-            ).model_dump()
-        except Exception as exc:
-            logger.exception("create_port failed")
-            return models.ToolResult(ok=False, message=str(exc)).model_dump()
 
     @mcp.tool()
     async def create_implementation_data_type(
@@ -279,234 +221,90 @@ def register_tools(mcp: Any, manager: WorkspaceManager) -> None:
         package_path: str,
         name: str,
         category: str = "VALUE",
-        base_type_ref: Optional[str] = None,
-    ) -> dict[str, Any]:
-        req = models.CreateImplementationDataTypeIn(
-            workspace_id=workspace_id,
-            package_path=package_path,
-            name=name,
-            category=category,
-            base_type_ref=base_type_ref,
+        base_type_ref: str | None = None,
+    ) -> dict:
+        manager.create_implementation_data_type(
+            workspace_id,
+            package_path,
+            name,
+            category,
+            base_type_ref,
         )
-        try:
-            ws = _get_workspace(req.workspace_id)
-            package = _get_element(ws, req.package_path)
-            if not isinstance(package, ar_element.Package):
-                return models.ToolResult(ok=False, message=f"'{req.package_path}' is not a Package.").model_dump()
+        return {"ok": True}
 
-            data_type = ar_element.ImplementationDataType(req.name, category=req.category)
-
-            # NOTE: base_type_ref wiring typically requires SwDataDefProps; keep it out for now.
-            package.append(data_type)
-
-            details = {"category": req.category, "base_type_ref": req.base_type_ref}
-            return models.ToolResult(
-                ok=True,
-                message=f"Created ImplementationDataType '{req.name}' in '{req.package_path}'.",
-                details=details,
-            ).model_dump()
-        except Exception as exc:
-            logger.exception("create_implementation_data_type failed")
-            return models.ToolResult(ok=False, message=str(exc)).model_dump()
 
     @mcp.tool()
     async def create_sw_base_type_in_package(
         workspace_id: str,
         package_path: str,
         name: str,
-        size: Optional[int] = None,
-        max_size: Optional[int] = None,
-        encoding: Optional[str] = None,
-        alignment: Optional[int] = None,
-        byte_order: Optional[str] = None,
-        native_declaration: Optional[str] = None,
+        size: int | None = None,
+        max_size: int | None = None,
+        encoding: str | None = None,
+        alignment: int | None = None,
+        byte_order: str | None = None,
+        native_declaration: str | None = None,
     ) -> dict:
-        """
-        Create SW-BASE-TYPE directly under a package path.
-        """
-        try:
-            ws = _get_workspace(workspace_id)
-            pkg = _ensure_package(ws, package_path)
-            elem = ar_element.SwBaseType(
-                name=name,
-                size=size,
-                max_size=max_size,
-                encoding=encoding,
-                alignment=alignment,
-                byte_order=_parse_byte_order(byte_order),
-                native_declaration=native_declaration,
-            )
-            pkg.append(elem)
-            return models.ToolResult(
-                ok=True,
-                message=f"Created SwBaseType '{name}' in '{package_path}'.",
-                details={"ref": str(elem.ref()) if elem.ref() else None},
-            ).model_dump()
-        except Exception as e:
-            return models.ToolResult(ok=False, message=str(e)).model_dump()
+        manager.create_sw_base_type_in_package(
+            workspace_id,
+            package_path,
+            name,
+            size,
+            max_size,
+            encoding,
+            alignment,
+            byte_order,
+            native_declaration,
+        )
+        return {"ok": True}
+
 
     @mcp.tool()
     async def create_unit_in_package(
         workspace_id: str,
         package_path: str,
         name: str,
-        display_name: Optional[str] = None,
-        factor: Optional[float] = None,
-        offset: Optional[float] = None,
-        physical_dimension_ref: Optional[str] = None,
+        display_name: str | None = None,
+        factor: float | None = None,
+        offset: float | None = None,
+        physical_dimension_ref: str | None = None,
     ) -> dict:
-        """
-        Create UNIT directly under a package path.
-        """
-        try:
-            ws = _get_workspace(workspace_id)
-            pkg = _ensure_package(ws, package_path)
-            unit = ar_element.Unit(
-                name=name,
-                display_name=display_name,
-                factor=factor,
-                offset=offset,
-                physical_dimension_ref=physical_dimension_ref,
-            )
-            pkg.append(unit)
-            return models.ToolResult(
-                ok=True,
-                message=f"Created Unit '{name}' in '{package_path}'.",
-                details={"ref": str(unit.ref()) if unit.ref() else None},
-            ).model_dump()
-        except Exception as e:
-            return models.ToolResult(ok=False, message=str(e)).model_dump()
+        manager.create_unit_in_package(
+            workspace_id,
+            package_path,
+            name,
+            display_name,
+            factor,
+            offset,
+            physical_dimension_ref,
+        )
+        return {"ok": True}
+
 
     @mcp.tool()
     async def create_constant_in_package(
         workspace_id: str,
         package_path: str,
         name: str,
-        value: Any,
+        value,
     ) -> dict:
-        """
-        Create CONSTANT-SPECIFICATION under a package path.
-        Uses ConstantSpecification.make_constant for convenience.
-        """
-        try:
-            ws = _get_workspace(workspace_id)
-            pkg = _ensure_package(ws, package_path)
-            const = ar_element.ConstantSpecification.make_constant(name=name, value=value)
-            pkg.append(const)
-            return models.ToolResult(
-                ok=True,
-                message=f"Created ConstantSpecification '{name}' in '{package_path}'.",
-                details={"ref": str(const.ref()) if const.ref() else None},
-            ).model_dump()
-        except Exception as e:
-            return models.ToolResult(ok=False, message=str(e)).model_dump()
+        manager.create_constant_in_package(workspace_id, package_path, name, value)
+        return {"ok": True}
+
 
     @mcp.tool()
-    async def add_sw_base_type_by_package_key(
-        workspace_id: str,
-        package_key: str,
-        name: str,
-        size: Optional[int] = None,
-        max_size: Optional[int] = None,
-        encoding: Optional[str] = None,
-        alignment: Optional[int] = None,
-        byte_order: Optional[str] = None,
-        native_declaration: Optional[str] = None,
-    ) -> dict:
-        """
-        Adds SW-BASE-TYPE using Workspace package_map key (requires create_package_map done earlier).
-        Mirrors ar_xml.Workspace.add_element(package_key, element).
-        """
-        req = models.AddElementByKeySwBaseTypeIn(
-            workspace_id=workspace_id,
-            package_key=package_key,
-            name=name,
-            size=size,
-            max_size=max_size,
-            encoding=encoding,
-            alignment=alignment,
-            byte_order=byte_order,  # validated by model literal set
-            native_declaration=native_declaration,
-        )
-        try:
-            ws = _get_workspace(req.workspace_id)
-            elem = ar_element.SwBaseType(
-                name=req.name,
-                size=req.size,
-                max_size=req.max_size,
-                encoding=req.encoding,
-                alignment=req.alignment,
-                byte_order=_parse_byte_order(req.byte_order),
-                native_declaration=req.native_declaration,
-            )
-            ws.add_element(req.package_key, elem)
-            return models.ToolResult(
-                ok=True,
-                message=f"Added SwBaseType '{req.name}' to package_key '{req.package_key}'.",
-                details={"ref": str(elem.ref()) if elem.ref() else None},
-            ).model_dump()
-        except Exception as e:
-            return models.ToolResult(ok=False, message=str(e)).model_dump()
+    async def add_sw_base_type_by_package_key(workspace_id: str, package_key: str, **kwargs) -> dict:
+        manager.add_sw_base_type_by_package_key(workspace_id, package_key, **kwargs)
+        return {"ok": True}
+
 
     @mcp.tool()
-    async def add_constant_by_package_key(workspace_id: str, package_key: str, name: str, value: Any) -> dict:
-        """
-        Adds CONSTANT-SPECIFICATION using Workspace package_map key (requires create_package_map done earlier).
-        """
-        req = models.AddElementByKeyConstantIn(
-            workspace_id=workspace_id,
-            package_key=package_key,
-            name=name,
-            value=value,
-        )
-        try:
-            ws = _get_workspace(req.workspace_id)
-            const = ar_element.ConstantSpecification.make_constant(name=req.name, value=req.value)
-            ws.add_element(req.package_key, const)
-            return models.ToolResult(
-                ok=True,
-                message=f"Added ConstantSpecification '{req.name}' to package_key '{req.package_key}'.",
-                details={"ref": str(const.ref()) if const.ref() else None},
-            ).model_dump()
-        except Exception as e:
-            return models.ToolResult(ok=False, message=str(e)).model_dump()
+    async def add_constant_by_package_key(workspace_id: str, package_key: str, name: str, value) -> dict:
+        manager.add_constant_by_package_key(workspace_id, package_key, name, value)
+        return {"ok": True}
+
 
     @mcp.tool()
-    async def add_unit_by_package_key(
-        workspace_id: str,
-        package_key: str,
-        name: str,
-        display_name: Optional[str] = None,
-        factor: Optional[float] = None,
-        offset: Optional[float] = None,
-        physical_dimension_ref: Optional[str] = None,
-    ) -> dict:
-        """
-        Adds UNIT using Workspace package_map key (requires create_package_map done earlier).
-        """
-        req = models.AddElementByKeyUnitIn(
-            workspace_id=workspace_id,
-            package_key=package_key,
-            name=name,
-            display_name=display_name,
-            factor=factor,
-            offset=offset,
-            physical_dimension_ref=physical_dimension_ref,
-        )
-        try:
-            ws = _get_workspace(req.workspace_id)
-            unit = ar_element.Unit(
-                name=req.name,
-                display_name=req.display_name,
-                factor=req.factor,
-                offset=req.offset,
-                physical_dimension_ref=req.physical_dimension_ref,
-            )
-            ws.add_element(req.package_key, unit)
-            return models.ToolResult(
-                ok=True,
-                message=f"Added Unit '{req.name}' to package_key '{req.package_key}'.",
-                details={"ref": str(unit.ref()) if unit.ref() else None},
-            ).model_dump()
-        except Exception as e:
-            return models.ToolResult(ok=False, message=str(e)).model_dump()
+    async def add_unit_by_package_key(workspace_id: str, package_key: str, **kwargs) -> dict:
+        manager.add_unit_by_package_key(workspace_id, package_key, **kwargs)
+        return {"ok": True}
