@@ -1,90 +1,86 @@
-# AUTOSAR MCP Server
+# AUTOSAR MCP Server 🚗⚙️
 
-An MCP (Model Context Protocol) server that enables LLMs (e.g., GitHub Copilot in Agent mode) to build AUTOSAR ARXML models programmatically using structured tools instead of writing raw XML.
+![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
+![MCP](https://img.shields.io/badge/MCP-compatible-green.svg)
+![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)
 
-This server wraps the `autosar` Python library and exposes safe, high-level tools for:
+An **AUTOSAR Model Context Protocol (MCP) Server** that allows Large
+Language Models (LLMs) --- such as **GitHub Copilot (Agent Mode)** ---
+to generate structured AUTOSAR ARXML models using safe, high-level tools
+instead of manually writing XML.
 
-- Creating packages
-- Creating base types and implementation data types
-- Creating port interfaces
-- Creating software components
-- Creating ports
-- Creating internal behavior (runnables, events)
-- Splitting output into multiple ARXML documents
+This server wraps the `autosar` Python library and exposes
+domain-specific tools through MCP.
 
----
+------------------------------------------------------------------------
 
-# Architecture
+## ✨ Features
 
-LLM (Copilot / Agent)
-↓
-MCP tools (tools.py)
-↓
-WorkspaceManager
-↓
-autosar.xml library
-↓
-Generated ARXML files
+-   🔧 Create AUTOSAR packages
+-   🧱 Create SW Base Types & Implementation Data Types
+-   🔌 Create Sender-Receiver & Client-Server Interfaces
+-   🧩 Create Software Components
+-   🚪 Create Ports (P / R / PR)
+-   🏗 Create Internal Behavior (Runnables, Events)
+-   📦 Split output into multiple ARXML files
+-   🔐 Safe architecture via ObjectRegistry
 
-yaml
-Copy code
+------------------------------------------------------------------------
 
-### Design Principles
+## 🏗 Architecture
 
-- Tools are thin wrappers
-- All AUTOSAR logic lives in `WorkspaceManager`
-- ObjectRegistry protects internal objects from LLM access
-- Multiple ARXML files supported via document mapping
+    LLM (Copilot / Agent Mode)
+            ↓
+    MCP Tools (tools.py)
+            ↓
+    WorkspaceManager
+            ↓
+    autosar.xml
+            ↓
+    Generated ARXML files
 
----
+------------------------------------------------------------------------
 
-# Project Structure
+## 📁 Project Structure
 
-autosar_mcp/
-│
-├── core/
-│ ├── workspace_manager.py
-│ └── registry.py
-│
-├── tools.py
-├── server.py
-└── prompts/ (optional)
+    autosar_mcp/
+    │
+    ├── core/
+    │   ├── workspace_manager.py
+    │   └── registry.py
+    │
+    ├── tools.py
+    ├── server.py
+    └── prompts/ (optional)
 
-yaml
-Copy code
+------------------------------------------------------------------------
 
----
+## 🚀 Installation
 
-# Installation
-
-```bash
+``` bash
 pip install -r requirements.txt
-Ensure the following dependencies are installed:
+```
 
-autosar
+Dependencies: - autosar - mcp - pydantic
 
-mcp
+------------------------------------------------------------------------
 
-pydantic
+## ▶ Running the Server
 
-Running the MCP Server
-Run locally:
-
-bash
-Copy code
+``` bash
 python -m autosar_mcp.server
-or
+```
 
-bash
-Copy code
-python autosar_mcp/server.py
-The server communicates via stdio, which is required for GitHub Copilot MCP integration.
+The server communicates over **stdio**, required for GitHub Copilot MCP
+integration.
 
-Connecting to GitHub Copilot (VS Code)
-Create .vscode/mcp.json in your project:
+------------------------------------------------------------------------
 
-json
-Copy code
+## 🤖 Using with GitHub Copilot (VS Code)
+
+Create `.vscode/mcp.json`:
+
+``` json
 {
   "servers": {
     "autosar-mcp": {
@@ -93,128 +89,40 @@ Copy code
     }
   }
 }
-Then:
+```
 
-Open VS Code
+Then: 1. Open VS Code 2. Open Copilot Chat 3. Switch to Agent Mode 4.
+Start the autosar-mcp server 5. Copilot can now call AUTOSAR tools
+directly
 
-Open Copilot Chat
+------------------------------------------------------------------------
 
-Switch to Agent mode
+## 🧠 Typical LLM Workflow
 
-Start the autosar-mcp server
+1.  create_workspace
+2.  create_package_map
+3.  Create base types
+4.  Create implementation data types
+5.  Create port interfaces
+6.  Create components
+7.  Create ports
+8.  Create internal behavior
+9.  set_document_root
+10. create_document
+11. create_document_mapping
+12. write_documents
 
-Copilot can now call your AUTOSAR tools
+------------------------------------------------------------------------
 
-Supported Capabilities
-Platform Modeling
-Create SW base types
+## 🔒 Safety Model
 
-Create ImplementationDataTypes
+-   LLM never receives raw AUTOSAR objects
+-   All objects stored in ObjectRegistry
+-   Access controlled via workspace_id
+-   Tools return JSON-safe responses
 
-Create Units
+------------------------------------------------------------------------
 
-Create Constants
+## 📄 License
 
-Interfaces
-Create SenderReceiverInterface
-
-Create ClientServerInterface
-
-Create DataElements
-
-Create Operations
-
-Components
-Create ApplicationSoftwareComponentType
-
-Create CompositionSwComponentType
-
-Create Ports (P, R, PR)
-
-Create Internal Behavior
-
-Create Runnables
-
-Create Events
-
-Multi-File Output
-Set document root
-
-Create document definitions
-
-Create document mappings
-
-Write multiple ARXML files automatically
-
-Example Workflow (LLM)
-Typical build order:
-
-create_workspace
-
-create_package_map
-
-Create base types
-
-Create implementation data types
-
-Create port interfaces
-
-Create components
-
-Create ports
-
-Create internal behavior
-
-set_document_root
-
-create_document
-
-create_document_mapping
-
-write_documents
-
-Multi-File Generation
-The server supports splitting into:
-
-platform.arxml
-
-portinterfaces.arxml
-
-constants.arxml
-
-Component-specific ARXML files
-
-Using:
-
-python
-Copy code
-set_document_root(...)
-create_document(...)
-create_document_mapping(...)
-write_documents(...)
-Safety Model
-LLM never receives raw AUTOSAR objects
-
-All objects are stored in ObjectRegistry
-
-Access is controlled via workspace_id
-
-Tools return JSON-safe responses
-
-Limitations
-Only ApplicationSoftwareComponentType and CompositionSwComponentType are supported
-
-Some advanced AUTOSAR categories are not implemented in the underlying library
-
-Base type linking for ImplementationDataTypes is minimal (can be extended)
-
-Future Improvements
-Full ComSpec configuration tools
-
-ModeSwitch refinements
-
-Better validation feedback
-
-Structured tool result schemas
-
-Example orchestration prompts
+MIT License
