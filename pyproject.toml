@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autosar_arxml_mcp"
+version = "0.1.0"
+description = "MCP server for managing AUTOSAR ARXML files."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+dependencies = [
+  "mcp",
+  "lxml",
+  "pydantic>=2.0",
+  "tomli; python_version < '3.11'",
+  "autosar @ git+https://github.com/cogu/autosar.git"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
