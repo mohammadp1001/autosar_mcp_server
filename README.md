@@ -4,30 +4,29 @@
 ![MCP](https://img.shields.io/badge/MCP-compatible-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)
 
-An **AUTOSAR Model Context Protocol (MCP) Server** that allows Large
-Language Models (LLMs) --- such as **GitHub Copilot (Agent Mode)** ---
-to generate structured AUTOSAR ARXML models using safe, high-level tools
-instead of manually writing XML.
+An **AUTOSAR MCP Server** that equips your LLM 
+to modify/generate AUTOSAR ARXML files using safe, high-level tools.
 
 This server wraps the `autosar` Python library and exposes
 domain-specific tools through MCP.
 
+The current version only supports AUTOSAR classic.
 ------------------------------------------------------------------------
 
 ## ✨ Features
 
--   🔧 Create AUTOSAR packages
--   🧱 Create SW Base Types & Implementation Data Types
--   🔌 Create Sender-Receiver & Client-Server Interfaces
--   🧩 Create Software Components
--   🚪 Create Ports (P / R / PR)
--   🏗 Create Internal Behavior (Runnables, Events)
--   📦 Split output into multiple ARXML files
--   🔐 Safe architecture via ObjectRegistry
+-    Create AUTOSAR packages
+-    Create SW Base Types & Implementation Data Types
+-    Create Sender-Receiver & Client-Server Interfaces
+-    Create Software Components
+-    Create Ports (P / R / PR)
+-    Create Internal Behavior (Runnables, Events)
+-    Split output into multiple ARXML files
+
 
 ------------------------------------------------------------------------
 
-## 🏗 Architecture
+## Architecture
 
     LLM (Copilot / Agent Mode)
             ↓
@@ -61,8 +60,6 @@ domain-specific tools through MCP.
 pip install -r requirements.txt
 ```
 
-Dependencies: - autosar - mcp - pydantic
-
 ------------------------------------------------------------------------
 
 ## ▶ Running the Server
@@ -76,7 +73,7 @@ integration.
 
 ------------------------------------------------------------------------
 
-## 🤖 Using with GitHub Copilot (VS Code)
+## Using with GitHub Copilot (VS Code)
 
 Create `.vscode/mcp.json`:
 
