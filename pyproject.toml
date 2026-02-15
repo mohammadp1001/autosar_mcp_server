@@ -17,6 +17,9 @@ dependencies = [
   "autosar @ git+https://github.com/cogu/autosar.git"
 ]
 
+[project.scripts]
+autosar-mcp = "autosar_mcp.main:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

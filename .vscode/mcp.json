@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "autosar-mcp": {
+      "command": "python",
+      "args": ["-m", "autosar_mcp.main"],
+      "env": { "PYTHONUNBUFFERED": "1" }
+    }
+  }
+}

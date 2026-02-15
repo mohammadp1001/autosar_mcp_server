@@ -15,7 +15,7 @@ The current version only supports AUTOSAR classic.
 <!-- autosar_mcp: io.github.mohammadp1001/autosar_mcp_server -->
 ------------------------------------------------------------------------
 
-## ✨ Features
+## Features
 
 -    Create AUTOSAR packages
 -    Create SW Base Types & Implementation Data Types
